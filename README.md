@@ -1,20 +1,18 @@
 # RPi-central
--------------
 
 Raspberry Pi is the interface between the internet and the low level hardware for a model railroad project
 
 ## Components
--------------
 
-### MySQL database API
+- ### MySQL database API
 
-### RF12 chip API
+- ### RF12 chip API
 
-- communication via SPI
+	- communication via SPI
 
-- connected Pins: 
+	- connected Pins: 
 
-	Raspberry Pi  |     | RF12
+		Raspberry Pi  |     | RF12
 ------------: |:-----:| :---
 3.3V		  | ----> | VDD
 GPIO 24		  | <---- | NIRQ
