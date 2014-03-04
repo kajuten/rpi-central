@@ -7,6 +7,8 @@ try:
     cmd = 0xff00
     print "sent:     " + hex(cmd)
     print "received: " + hex(rf12.spi_trans(cmd))
+except KeyboardInterrupt:
+    print "Programm stopped"
 except Exception as e:
     print "Program halted"
     print type(e)
