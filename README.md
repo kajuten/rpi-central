@@ -10,7 +10,7 @@ Raspberry Pi is the interface between the internet and the low level hardware fo
 
 	- communication via SPI
 
-	- connected Pins: 
+	- connected Pins:
 
 		Raspberry Pi  |     | RF12
 ------------: |:-----:| :---
@@ -31,9 +31,9 @@ CE0			  | ----> | nSEL
 - Central Raspberry Pi connected to WIFI
 - Communication from RPi-central to the signal-towers via RF12 chip [TRX433S][RF12]
 - MySQL database hosted on Raspberry Pi
-- Signal towers are controlled by an ATmega8 which is connected with a RF12 chip ([see signal-tower project][signal-tower])
+- Signal towers are controlled by an ATmega8 which is connected with a RF12 chip ([see signaltower project][signaltower])
 - Another Raspberry Pi with a camera module is in every train which is connected via a 3G dongle to the internet ([see RPi-train project][RPi-train])
 
 [RF12]: http://www.matrixmultimedia.com/resources/files/datasheets/RF%20Solutions%20Transciever.pdf
-[signal-tower]: https://github.com/kajuten/
-[RPi-train]: https://github.com/kajuten/
+[signaltower]: https://github.com/kajuten/signaltower
+[RPi-train]: https://github.com/kajuten/rpi-train
