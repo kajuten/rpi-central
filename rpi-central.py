@@ -3,10 +3,12 @@
 import time
 import rf12
 
+rf12.initialize(rf12.BAND_433MHZ)
+
 try:
     cmd = 0xff00
     print "sent:     " + hex(cmd)
-    print "received: " + hex(rf12.spi_trans(cmd))
+    print "received: " + hex(rf12.spi_xfer(cmd))
 except KeyboardInterrupt:
     print "Programm stopped"
 except Exception as e:
