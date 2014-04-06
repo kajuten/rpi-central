@@ -34,6 +34,11 @@ CE0			  | ----> | nSEL
 - Signal towers are controlled by an ATmega8 which is connected with a RF12 chip ([see signaltower project][signaltower])
 - Another Raspberry Pi with a camera module is in every train which is connected via a 3G dongle to the internet ([see RPi-train project][RPi-train])
 
+### Credits to [Jean-Claude Wippler][jcw] and his [RF12 Library for Arduino][JeeLib]
+- We used his library as a reference and applied it to the Raspberry Pi.
+
 [RF12]: http://www.matrixmultimedia.com/resources/files/datasheets/RF%20Solutions%20Transciever.pdf
 [signaltower]: https://github.com/kajuten/signaltower
 [RPi-train]: https://github.com/kajuten/rpi-train
+[jcw]: https://github.com/jcw
+[JeeLib]: https://github.com/jcw/jeelib
