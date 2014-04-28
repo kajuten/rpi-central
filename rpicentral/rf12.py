@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python2.7
 
 import spidev
 import RPi.GPIO as GPIO
@@ -62,8 +62,8 @@ def initialize(band):
     band -- specifies the used frequency band
             use these constants: BAND_433MHZ, BAND_868MHZ, BAND_915MHZ
     '''
-    spi_initialize()
     gpio_initialize()
+    spi_initialize()
 
     spi_xfer(0x0000) # initial SPI transfer added to avoid power-up problem
     spi_xfer(RF_SLEEP_MODE)
