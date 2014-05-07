@@ -22,6 +22,10 @@ MISO 		  | <---- | SDO
 CLK  		  | ----> | SCK
 CE0			  | ----> | nSEL
 
+## Run Unittests
+	cd /to/Project/root
+	nosetests
+
 ## Model Railroad description
 
 **Goal:** a self-made model railroad which can be controlled via a PC
