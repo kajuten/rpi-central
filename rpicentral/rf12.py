@@ -2,10 +2,10 @@
 
 import spidev
 import RPi.GPIO as GPIO
+import time
 
 spi = None
 rxstate = 0
-
 
 # constants
 NIRQ = 24
@@ -97,19 +97,20 @@ def initialize(band):
 # free resources
 def cleanup():
     '''Closes GPIO and SPI resources.'''
-    GPIO.cleanup()
-    spi.close()
-
+    if GPIO is not None:
+        GPIO.cleanup()
+    if spi is not None:
+        spi.close()
 
 #-----------------------------------------------------------------------------
 # send function
-def rf12_send(data=0):
+def send(data=0):
     '''Send data via RF chip.
 
     Keyword arguments:
     data -- data to transmit, 1 Byte (default 0)
     '''
-    while not GPIO.input(NIRQ):
+    while GPIO.input(NIRQ):
         time.sleep(0.01) # wait 10ms to let the cpu perform other tasks
     spi_xfer(RF_TXREG_WRITE + data)
 
