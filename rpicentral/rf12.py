@@ -139,16 +139,12 @@ def transceive(self):
     global transmit
     global index
 
-#    print "i: ", index
-#    print "trx: ", trx_state
-
-#    spi_xfer()
-
     if(trx_state == TRX.RECEIVE):
         receive.append(spi_xfer(RF_RX_FIFO_READ))
 
         if len(receive) >= RF_LENGTH:
             spi_xfer(RF_SLEEP_MODE)
+            trx_state = TRX.IDLE
             print receive
 
     elif(trx_state == TRX.TRANSMIT):
@@ -157,12 +153,10 @@ def transceive(self):
         if index >= len(transmit) -1:
             spi_xfer(RF_SLEEP_MODE)
             trx_state = TRX.IDLE
-            print "status: ", "0b" + bin(get_status())[2:].zfill(16)
         index += 1
 
 
 def get_status():
-#    spi_xfer()
     return spi_xfer(0x0000)
 
 
@@ -173,12 +167,8 @@ def start_send(packet):
 
     index = 0
     transmit = packet
-    print transmit
-    print len(transmit), type(transmit)
-    print "\nStart send"
 
     trx_state = TRX.TRANSMIT
-    print "trx_state: " + str(trx_state)
     spi_xfer(RF_TRANSMITTER_ON)
 
 
@@ -190,7 +180,6 @@ def start_receive():
 
     trx_state = TRX.RECEIVE
     spi_xfer(RF_RECEIVER_ON)
-    print "RX ON"
 
 
 #-----------------------------------------------------------------------------

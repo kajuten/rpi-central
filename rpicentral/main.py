@@ -13,15 +13,15 @@ def main():
 
 
     msg = 'Hello'
-#    print "ID: " + bin(rpi.getID())
+    print "ID: " + bin(rpi.getID())
     print "\nSend \'" + msg + "\'"
     rpi.send(0, msg)
-#    rf12.start_receive()
+    rf12.start_receive()
 
     try:
         while True:
             rf12.get_status()
-            time.sleep(1)
+            time.sleep(10)
     except KeyboardInterrupt:
         print "Programm stopped"
     except Exception, e:
