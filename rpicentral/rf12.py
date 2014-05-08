@@ -3,9 +3,25 @@
 import spidev
 import RPi.GPIO as GPIO
 import time
+from flufl.enum import Enum
+
+
+receive = list()
+transmit = list()
+
+index = 0
+
+class TRX(Enum):
+    IDLE = 0
+    RECEIVE = 1
+    TRANSMIT = 2
+
+trx_state = TRX.IDLE
+
+RF_LENGTH = 14
+
 
 spi = None
-rxstate = 0
 
 # constants
 NIRQ = 24
@@ -15,10 +31,14 @@ BAND_433MHZ = 1
 BAND_868MHZ = 2
 BAND_915MHZ = 3
 
+RF_RECEIVER_ON = 0x82DD
+RF_TRANSMITTER_ON = 0x823D
 
+
+RF_RX_FIFO_READ = 0xB000
 RF_TXREG_WRITE = 0xB800
 RF_SLEEP_MODE = 0x8201 # dc = 1
-RF_TXREG_FIFO_ENABLE = 0x80F0 # el = 1, ef = 1, band = 915, load capacitor = X
+RF_TXREG_FIFO_ENABLE = 0x80C8 # el = 1, ef = 1, band = 0, load capacitor = X
 RF_RX_CTRL = 0x94A1 # VDI, FAST, 134kHz, 0dBm, -97dBm
 RF_TX_CTRL = 0x9850 # mp = 0, 90kHz, 0dBm
 RF_FREQUENCY = 0xA4B0 # f = 1200 -> fc = 433MHz
@@ -55,7 +75,7 @@ def gpio_initialize():
     GPIO.setup(NIRQ, GPIO.IN)
 
 
-def initialize(band):
+def initialize(band=BAND_433MHZ):
     '''Set up RF12 chip.
 
     Keyword arguments:
@@ -65,7 +85,7 @@ def initialize(band):
     gpio_initialize()
     spi_initialize()
 
-    spi_xfer(0x0000) # initial SPI transfer added to avoid power-up problem
+    spi_xfer() # initial SPI transfer added to avoid power-up problem
     spi_xfer(RF_SLEEP_MODE)
 
     # wait until RFM12B is out of power-up reset, this takes several *seconds*
@@ -73,7 +93,7 @@ def initialize(band):
     while not GPIO.input(NIRQ):
         spi_xfer(0x0000)
 
-    spi_xfer(RF_TXREG_FIFO_ENABLE | (band < 4)) # el = 1, ef = 1, band = 915, load capacitor = X
+    spi_xfer(RF_TXREG_FIFO_ENABLE | (band < 4)) # el = 1, ef = 1, load capacitor = X
     spi_xfer(RF_FREQUENCY) # f = 1200 -> fc = 433MHz
     spi_xfer(RF_DATA_RATE) # r = 35, cs = 0 -> data rate ~ 9600 kbit/s
     spi_xfer(RF_RX_CTRL) # VDI, FAST, 134kHz, 0dBm, -97dBm
@@ -86,12 +106,13 @@ def initialize(band):
     spi_xfer(RF_TX_CTRL) # mp = 0, 90kHz, 0dBm
     spi_xfer(RF_PLL) # ob = 3, lpx = 1, ddy = 0, ddi = 1, bw0 = 1
 
-    spi_xfer(RF_WAKE_UP) # not used
-    spi_xfer(RF_LOW_DUTY_CYCLE) # not used
-    spi_xfer(RF_LOW_BATTERY) # not used
+#    spi_xfer(RF_WAKE_UP) # not used
+#    spi_xfer(RF_LOW_DUTY_CYCLE) # not used
+#    spi_xfer(RF_LOW_BATTERY) # not used
 
-#    global rxstate
-#    rxstate = TXIDLE
+    global trx_state
+    trx_state = TRX.IDLE
+    GPIO.add_event_detect(NIRQ, GPIO.FALLING, callback=transceive)
 
 
 # free resources
@@ -101,6 +122,76 @@ def cleanup():
         GPIO.cleanup()
     if spi is not None:
         spi.close()
+
+#-----------------------------------------------------------------------------
+# transceive function (interrupt driven)
+def transceive(self):
+    '''Send/receive data.
+
+    Interrupt driven send and receive function.(Triggerd by falling Edge on
+    NIRQ channel.
+
+    Send:    to beginn call start_send()
+    Receive: to beginn call start_receive()
+    '''
+    global trx_state
+    global receive
+    global transmit
+    global index
+
+#    print "i: ", index
+#    print "trx: ", trx_state
+
+#    spi_xfer()
+
+    if(trx_state == TRX.RECEIVE):
+        receive.append(spi_xfer(RF_RX_FIFO_READ))
+
+        if len(receive) >= RF_LENGTH:
+            spi_xfer(RF_SLEEP_MODE)
+            print receive
+
+    elif(trx_state == TRX.TRANSMIT):
+        spi_xfer(RF_TXREG_WRITE + transmit[index])
+        print "Send: ", transmit[index] 
+        if index >= len(transmit) -1:
+            spi_xfer(RF_SLEEP_MODE)
+            trx_state = TRX.IDLE
+            print "status: ", "0b" + bin(get_status())[2:].zfill(16)
+        index += 1
+
+
+def get_status():
+#    spi_xfer()
+    return spi_xfer(0x0000)
+
+
+def start_send(packet):
+    global transmit
+    global index
+    global trx_state
+
+    index = 0
+    transmit = packet
+    print transmit
+    print len(transmit), type(transmit)
+    print "\nStart send"
+
+    trx_state = TRX.TRANSMIT
+    print "trx_state: " + str(trx_state)
+    spi_xfer(RF_TRANSMITTER_ON)
+
+
+def start_receive():
+    global receive
+    global trx_state
+
+    receive = []
+
+    trx_state = TRX.RECEIVE
+    spi_xfer(RF_RECEIVER_ON)
+    print "RX ON"
+
 
 #-----------------------------------------------------------------------------
 # send function
@@ -117,7 +208,7 @@ def send(data=0):
 
 #-----------------------------------------------------------------------------
 # low level function
-def spi_xfer(cmd):
+def spi_xfer(cmd=0):
     '''Write command via SPI to RF chip.
 
     Keyword arguments:

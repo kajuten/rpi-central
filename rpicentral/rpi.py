@@ -62,8 +62,4 @@ def send(dest, data):
 
     packet.extend(END)
 
-    print packet
-
-    for e in packet:
-        print "Send: " + str(e)
-        rf12.send(e)
+    rf12.start_send(packet)
